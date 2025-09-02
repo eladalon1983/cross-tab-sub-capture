@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="origin-trial"
+      content="AuQ1gao8sjJqBDLmyVNouIKvY6cP0/FZVEQFPI/E5us/fsz3BYhdzhnSv7PBLW3h3Jdq1spSaK8tzbOo9BWUqAQAAAB1eyJvcmlnaW4iOiJodHRwczovL3N1Yi1jYXB0dXJlLWRlbW8uZ2xpdGNoLm1lOjQ0MyIsImZlYXR1cmUiOiJFbGVtZW50Q2FwdHVyZSIsImV4cGlyeSI6MTcyNTQwNzk5OSwiaXNTdWJkb21haW4iOnRydWV9"
+    />
+    <link rel="stylesheet" href="index.css" />
+    <title>Cross-Tab Sub-Capture (Capturing Page)</title>
+  </head>
+  <body>
+    <h1>Capturing Page</h1>
+    <br />
+    <table>
+      <tbody>
+        <tr>
+          <td>
+            <button
+              id="red-crop-button"
+              onclick="applySubCaptureTarget('crop', 'red');"
+              disabled
+            >
+              Crop to red
+            </button>
+          </td>
+          <td>
+            <button
+              id="blue-crop-button"
+              onclick="applySubCaptureTarget('crop', 'blue');"
+              disabled
+            >
+              Crop to blue
+            </button>
+          </td>
+          <td>
+            <button
+              id="green-crop-button"
+              onclick="applySubCaptureTarget('crop', 'green');"
+              disabled
+            >
+              Crop to green
+            </button>
+          </td>
+          <td>
+            <button
+              id="uncrop-button"
+              onclick="applySubCaptureTarget('crop');"
+              disabled
+            >
+              Uncrop
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <button
+              id="red-restrict-button"
+              onclick="applySubCaptureTarget('restrict', 'red');"
+              disabled
+            >
+              restrict to red
+            </button>
+          </td>
+          <td>
+            <button
+              id="blue-restrict-button"
+              onclick="applySubCaptureTarget('restrict', 'blue');"
+              disabled
+            >
+              restrict to blue
+            </button>
+          </td>
+          <td>
+            <button
+              id="green-restrict-button"
+              onclick="applySubCaptureTarget('restrict', 'green');"
+              disabled
+            >
+              restrict to green
+            </button>
+          </td>
+          <td>
+            <button
+              id="unrestrict-button"
+              onclick="applySubCaptureTarget('restrict');"
+              disabled
+            >
+              Unrestrict
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <br /><br />
+    <video id="video" autoplay controls style="max-width: 400px"></video>
+    <br /><br />
+    <a href="" onclick="onLinkClicked();">Launch presentation</a>
+    <p>
+      After launching the "presentation", come back to *this* tab and start
+      tab-capturing the newly opened tab.
+    </p>
+    <script>
+      let targets;
+
+      const redButton = document.getElementById("red-crop-button");
+      const greenButton = document.getElementById("green-crop-button");
+      const blueButton = document.getElementById("blue-crop-button");
+      const uncropButton = document.getElementById("uncrop-button");
+
+      const redButtonEC = document.getElementById("red-restrict-button");
+      const greenButtonEC = document.getElementById("green-restrict-button");
+      const blueButtonEC = document.getElementById("blue-restrict-button");
+      const uncropButtonEC = document.getElementById("unrestrict-button");
+
+      const video = document.getElementById("video");
+      const colors = ["red", "green", "blue"];
+
+      window.addEventListener("message", (event) => {
+        targets = event.data;
+
+        redButton.disabled = false;
+        greenButton.disabled = false;
+        blueButton.disabled = false;
+        uncropButton.disabled = false;
+
+        redButtonEC.disabled = false;
+        greenButtonEC.disabled = false;
+        blueButtonEC.disabled = false;
+        uncropButtonEC.disabled = false;
+      });
+
+      async function applySubCaptureTarget(action, color) {
+        if (!video.srcObject) {
+          const controller = new CaptureController();
+          controller.setFocusBehavior("no-focus-change");
+          try {
+            video.srcObject = await navigator.mediaDevices.getDisplayMedia({
+              controller,
+            });
+          } catch (e) {
+            return;
+          }
+        }
+        const [videoTrack] = video.srcObject.getVideoTracks();
+        if (action == "crop") {
+          const target = targets[color]; // Can be null.
+          await videoTrack.cropTo(target);
+        } else {
+          const target = targets[color + "EC"]; // Can be null.
+          await videoTrack.restrictTo(target);
+        }
+      }
+
+      function onLinkClicked() {
+        window.open("captured.html");
+      }
+    </script>
+  </body>
+</html>
